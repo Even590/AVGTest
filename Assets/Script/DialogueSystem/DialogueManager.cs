@@ -3,6 +3,7 @@ using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine.Networking;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace AVGTest.Asset.Script.DialogueSystem
 {
@@ -49,6 +50,8 @@ namespace AVGTest.Asset.Script.DialogueSystem
                 {
                     System.DateTime lastWriteTime = File.GetLastWriteTime(cachePath);
                     System.TimeSpan timeSinceLastUpdate = System.DateTime.Now - lastWriteTime;
+
+                    Debug.Log($"快取檔案路徑：{cachePath}");
 
                     Debug.Log($"Cache file was last updated at {lastWriteTime}; it’s been {timeSinceLastUpdate} since then.");
 
@@ -136,7 +139,7 @@ namespace AVGTest.Asset.Script.DialogueSystem
             }
         }
 
-        private void ShowDialogue()
+        private async Task ShowDialogue()
         {
             if (currentDialogueIndex >= dialogueList.Count)
             {

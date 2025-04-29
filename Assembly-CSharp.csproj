@@ -59,7 +59,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Script\DialogueData.cs" />
+    <Compile Include="Assets\Script\IGameData.cs" />
+    <Compile Include="Assets\Script\DialogueSystem\GameDataManager.cs" />
     <Compile Include="Assets\Script\DialogueSystem\DialogueUIController.cs" />
+    <Compile Include="Assets\Script\IGameDataHandler.cs" />
     <Compile Include="Assets\Script\DialogueSystem\DialogueManager.cs" />
   </ItemGroup>
   <ItemGroup>
