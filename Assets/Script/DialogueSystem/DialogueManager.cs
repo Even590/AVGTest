@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine.Networking;
@@ -25,7 +25,6 @@ namespace AVGTest.Asset.Script.DialogueSystem
 
         private void Update()
         {
-            //´ú¸Õ¥Î±j¨î§ó·sºô¸ôCSVÀÉ
             if (Input.GetKeyDown(KeyCode.K))
             {
                 OnClickForceRefresh();
@@ -44,49 +43,49 @@ namespace AVGTest.Asset.Script.DialogueSystem
 
             if (File.Exists(cachePath)) 
             {
-                Debug.Log("§ä¨ì¥»¦a§Ö¨úÀÉ®×¡AÀË¬d¬O§_¹L´Á");
+                Debug.Log("Found local cache file, checking whether itâ€™s expired.");
 
                 if (!isForceUpdate)
                 {
                     System.DateTime lastWriteTime = File.GetLastWriteTime(cachePath);
                     System.TimeSpan timeSinceLastUpdate = System.DateTime.Now - lastWriteTime;
 
-                    Debug.Log($"§Ö¨úÀÉ®×¤W¦¸§ó·s®É¶¡{lastWriteTime}¡A¶ZÂ÷²{¦b¸g¹L{timeSinceLastUpdate}");
+                    Debug.Log($"Cache file was last updated at {lastWriteTime}; itâ€™s been {timeSinceLastUpdate} since then.");
 
                     if (timeSinceLastUpdate.Days <= cachevalidDays)
                     {
-                        Debug.Log("§Ö¨úÀÉ®×¤´¦³®Ä¡A¥i¥H±µµÛ¨Ï¥Î¡I");
+                        Debug.Log("Cache file is still valid; continuing to use it!");
                         csvText = await File.ReadAllTextAsync(cachePath);
                         needUpdate = false;
                     }
                     else
                     {
-                        Debug.Log("§Ö¨úÀÉ®×¤w¹L´Á¡A¶i¤J¤U¸ü¶¥¬q¡I");
+                        Debug.Log("Cache file has expired; proceeding to download phase!");
                     }
                 }
                 else
                 {
-                    Debug.Log("¤w¦¬¨ì±j¨î§ó·s­n¨D¡A²{¦b¶i¤J¤U¸ü¶¥¬q¡I");
+                    Debug.Log("Force update requested; now entering download phase!");
                 }
 
             }
             
             if(needUpdate || isForceUpdate)
             {
-                Debug.Log("°õ¦æºô¸ô¤U¸ü");
+                Debug.Log("Performing network download");
                 using (UnityWebRequest www = UnityWebRequest.Get(sheetURL))
                 {
                     await www.SendWebRequest();
 
                     if (www.result != UnityWebRequest.Result.Success)
                     {
-                        Debug.LogError("¤U¸ü¥¢±Ñ¡I½Ð­«·s´M§ä¸ê®Æ¡I");
+                        Debug.LogError("Download failed! Please try fetching the data again!");
                         return;
                     }
                     csvText = www.downloadHandler.text;
 
                     await File.WriteAllTextAsync(cachePath, csvText);
-                    Debug.Log($"¤wÀx¦s§Ö¨ú{cachePath}");
+                    Debug.Log($"Cache saved at {cachePath}");
                 }
             }
 
@@ -105,7 +104,7 @@ namespace AVGTest.Asset.Script.DialogueSystem
 
                 if (fields.Length < 7)
                 {
-                    Debug.LogWarning($"²Ä {i} ¦æÄæ¦ì¼Æ¤£¨¬ ({fields.Length})¡A¤w¸õ¹L¡G{lines[i]}");
+                    Debug.LogWarning($"Line {i} has insufficient fields ({fields.Length}); skipped: {lines[i]}");
                     continue;
                 }
 
@@ -118,7 +117,7 @@ namespace AVGTest.Asset.Script.DialogueSystem
 
                 if (!int.TryParse(fields[0], out id))
                 {
-                    Debug.LogWarning($"²Ä{i}¦æID¸ÑªR¥¢±Ñ¡A¸õ¹L¡I¤º®e¬O¡G[{fields[0]}]");
+                    Debug.LogWarning($"Failed to parse ID on line {i}; skipping! Content was: [{fields[0]}]");
                     continue;
                 }
 
@@ -164,7 +163,7 @@ namespace AVGTest.Asset.Script.DialogueSystem
                     OnChangeNextDialogue?.Invoke(dialogueData);
                     break;
                 default:
-                    Debug.LogWarning($"¥¼ª¾«ü¥O:{dialogueData.Command}");
+                    Debug.LogWarning($"UnknowCommand:{dialogueData.Command}");
                     break;
             }
         }
@@ -200,7 +199,7 @@ namespace AVGTest.Asset.Script.DialogueSystem
         public async void OnClickForceRefresh()
         {
             await LoadDialogueData(isForceUpdate : true);
-            Debug.Log("±j¨î§ó·s¤w§¹¦¨");
+            Debug.Log("Force update completed");
             currentDialogueIndex = 0;
             ShowDialogue();
         }

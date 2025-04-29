@@ -1,4 +1,4 @@
-using UnityEngine.AddressableAssets;
+Ôªøusing UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine;
 using TMPro;
@@ -17,14 +17,14 @@ namespace AVGTest.Asset.Script.DialogueSystem
         [SerializeField] private Image RightCharaterImage;
 
         private DialogueManager dialogueManager;
-        // Start is called before the first frame update
+
         void Start()
         {
             dialogueManager = FindAnyObjectByType<DialogueManager>();
 
             if (dialogueManager == null) 
             {
-                Debug.LogError("ß‰§£®ÏDialogueManager°I");
+                Debug.LogError("Can't find DialogueManagerÔºÅ");
                 return;
             }
 
@@ -33,7 +33,6 @@ namespace AVGTest.Asset.Script.DialogueSystem
             dialogueManager.StartDialogue();
         }
 
-        // Update is called once per frame
         void Update()
         {
             if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
@@ -46,7 +45,7 @@ namespace AVGTest.Asset.Script.DialogueSystem
         {
             if (data == null) 
             {
-                Debug.Log("πÔ∏‹§wµ≤ßÙ");
+                Debug.Log("Dialogue is finish");
                 nameText.text = "";
                 dialogueText.text = "";
                 return;
