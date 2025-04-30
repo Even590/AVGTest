@@ -1352,7 +1352,7 @@ MonoBehaviour:
   m_text: "\u6E2C\u8A66"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 3c867202545438748a5567b11371fe3c, type: 2}
-  m_sharedMaterial: {fileID: -2205932071449888671, guid: 3c867202545438748a5567b11371fe3c, type: 2}
+  m_sharedMaterial: {fileID: 6841275177873981544, guid: 3c867202545438748a5567b11371fe3c, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1728,7 +1728,7 @@ MonoBehaviour:
   m_text: "\u6E2C\u8A66"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 3c867202545438748a5567b11371fe3c, type: 2}
-  m_sharedMaterial: {fileID: -2205932071449888671, guid: 3c867202545438748a5567b11371fe3c, type: 2}
+  m_sharedMaterial: {fileID: 6841275177873981544, guid: 3c867202545438748a5567b11371fe3c, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
