@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
 using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
-using UnityEngine.Networking;
 using System.IO;
 using System.Threading.Tasks;
+using System.Net.Http;
+using System;
 
 namespace AVGTest.Asset.Script.DialogueSystem
 {
@@ -20,6 +21,8 @@ namespace AVGTest.Asset.Script.DialogueSystem
 
         private async void Start()
         {
+            ui = FindFirstObjectByType<DialogueUIController>();
+
             await LoadDialogueData();
             ShowDialogue();
         }
@@ -29,6 +32,17 @@ namespace AVGTest.Asset.Script.DialogueSystem
             if (Input.GetKeyDown(KeyCode.K))
             {
                 OnClickForceRefresh();
+            }
+        }
+        public async UniTask<string> DownloadCsvHttpClient(string url)
+        {
+            using (var cilent = new HttpClient())
+            {
+                HttpResponseMessage resp = await cilent.GetAsync(url);
+                resp.EnsureSuccessStatusCode();
+
+                string CsvText = await resp.Content.ReadAsStringAsync();
+                return CsvText;
             }
         }
 
@@ -42,7 +56,7 @@ namespace AVGTest.Asset.Script.DialogueSystem
 
             bool needUpdate = true;
 
-            if (File.Exists(cachePath)) 
+            if (File.Exists(cachePath))
             {
                 Debug.Log("Found local cache file, checking whether it’s expired.");
 
@@ -72,26 +86,16 @@ namespace AVGTest.Asset.Script.DialogueSystem
                 }
 
             }
-            
-            if(needUpdate || isForceUpdate)
+
+            if (needUpdate || isForceUpdate)
             {
                 Debug.Log("Performing network download");
-                using (UnityWebRequest www = UnityWebRequest.Get(sheetURL))
-                {
-                    await www.SendWebRequest();
-
-                    if (www.result != UnityWebRequest.Result.Success)
-                    {
-                        Debug.LogError("Download failed! Please try fetching the data again!");
-                        return;
-                    }
-                    csvText = www.downloadHandler.text;
-
-                    await File.WriteAllTextAsync(cachePath, csvText);
-                    Debug.Log($"Cache saved at {cachePath}");
-                }
+                csvText = await DownloadCsvHttpClient(sheetURL);
+                await File.WriteAllTextAsync(cachePath, csvText);
+                Debug.Log($"Cache saved at {cachePath}");
             }
 
+            dialogueList.Clear();
             ParseCSV(csvText);
         }
 
@@ -99,13 +103,15 @@ namespace AVGTest.Asset.Script.DialogueSystem
         {
             string[] lines = csv.Split('\n');
 
+            Debug.Log($"[ParseCSV] total lines (含 header): {lines.Length}");
+
             for (int i = 1; i < lines.Length; i++)
             {
                 if (string.IsNullOrWhiteSpace(lines[i])) continue;
 
                 string[] fields = lines[i].Split(',');
 
-                if (fields.Length < 7)
+                if (fields.Length < 9)
                 {
                     Debug.LogWarning($"Line {i} has insufficient fields ({fields.Length}); skipped: {lines[i]}");
                     continue;
@@ -131,8 +137,10 @@ namespace AVGTest.Asset.Script.DialogueSystem
                     Arg1 = fields[2],
                     Arg2 = fields[3],
                     Arg3 = fields[4],
-                    Speaker = fields[5],
-                    Line = fields[6],
+                    BG = fields[5],
+                    CG = fields[6],
+                    Speaker = fields[7],
+                    Line = fields[8],
                 };
 
                 dialogueList.Add(data);
@@ -152,11 +160,17 @@ namespace AVGTest.Asset.Script.DialogueSystem
 
             if (!string.IsNullOrEmpty(dlg.Command))
                 ExecuteCommand(dlg);
+
+            if (!string.IsNullOrEmpty(dlg.BG))
+                await ui.SetBG(dlg.BG);
+
+            if (!string.IsNullOrEmpty(dlg.CG))
+                await ui.SetBG(dlg.CG);
         }
 
         private void ExecuteCommand(DialogueData dialogueData)
         {
-            switch (dialogueData.Command) 
+            switch (dialogueData.Command)
             {
                 case "SetCharacter":
                     HandleSetCharater(dialogueData);
@@ -165,6 +179,7 @@ namespace AVGTest.Asset.Script.DialogueSystem
                 case "Say":
                     OnChangeNextDialogue?.Invoke(dialogueData);
                     break;
+
                 default:
                     Debug.LogWarning($"UnknowCommand:{dialogueData.Command}");
                     break;
@@ -173,20 +188,20 @@ namespace AVGTest.Asset.Script.DialogueSystem
 
         private void HandleSetCharater(DialogueData dialogue)
         {
-            if(dialogue.Arg1 == "Left")
+            if (dialogue.Arg1 == "Left")
             {
                 _ = ui.SetLeftCharacter(dialogue.Arg2);
 
-                if(dialogue.Arg3 == "NoWait")
+                if (dialogue.Arg3 == "NoWait")
                 {
                     NextDialogue();
                 }
             }
-            if(dialogue.Arg1 == "Right")
+            if (dialogue.Arg1 == "Right")
             {
                 _ = ui.SetRightCharacter(dialogue.Arg2);
 
-                if(dialogue.Arg3 == "NoWait")
+                if (dialogue.Arg3 == "NoWait")
                 {
                     NextDialogue();
                 }
@@ -201,7 +216,7 @@ namespace AVGTest.Asset.Script.DialogueSystem
 
         public async void OnClickForceRefresh()
         {
-            await LoadDialogueData(isForceUpdate : true);
+            await LoadDialogueData(isForceUpdate: true);
             Debug.Log("Force update completed");
             currentDialogueIndex = 0;
             ShowDialogue();

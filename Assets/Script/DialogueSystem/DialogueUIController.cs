@@ -6,6 +6,7 @@ using System;
 using UnityEngine.UI;
 using Cysharp.Threading.Tasks;
 using System.Threading.Tasks;
+using static TMPro.SpriteAssetUtilities.TexturePacker_JsonArray;
 
 namespace AVGTest.Asset.Script.DialogueSystem
 {
@@ -15,6 +16,8 @@ namespace AVGTest.Asset.Script.DialogueSystem
         [SerializeField] private TextMeshProUGUI dialogueText;
         [SerializeField] private Image LeftCharaterImage;
         [SerializeField] private Image RightCharaterImage;
+        [SerializeField] private Image BG;
+        [SerializeField] private Image CG;
 
         private DialogueManager dialogueManager;
 
@@ -88,6 +91,34 @@ namespace AVGTest.Asset.Script.DialogueSystem
             RightCharaterImage.sprite = sprite;
             RightCharaterImage.color = Color.white;
 
+            onCompleted?.Invoke();
+        }
+
+        public async UniTask<Sprite> LoadBGSpriteAsync(string spriteName)
+        {
+            var handle = Addressables.LoadAssetAsync<Sprite>($"BG/{spriteName}");
+            return await handle.Task;
+        }
+
+        public async Task SetBG(string spriteName, Action onCompleted = null)
+        {
+            var sprite = await LoadBGSpriteAsync(spriteName);
+            BG.sprite = sprite;
+            BG.color = Color.white;
+            onCompleted?.Invoke();
+        }
+
+        public async UniTask<Sprite> LoadCGSpriteAsync(string spriteName)
+        {
+            var handle = Addressables.LoadAssetAsync<Sprite>($"CG/{spriteName}");
+            return await handle.Task;
+        }
+
+        public async Task SetCG(string spriteName, Action onCompleted = null)
+        {
+            var sprite = await LoadCGSpriteAsync(spriteName);
+            CG.sprite = sprite;
+            CG.color = Color.white;
             onCompleted?.Invoke();
         }
     }
