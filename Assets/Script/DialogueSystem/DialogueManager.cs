@@ -4,13 +4,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Net.Http;
-using System;
 
 namespace AVGTest.Asset.Script.DialogueSystem
 {
     public class DialogueManager : MonoBehaviour
     {
-        [SerializeField] private DialogueUIController ui;
+        [SerializeField] private DialogueView ui;
         [SerializeField] private string sheetURL;
         private string CacheFileName = "DialogueCache.csv";
         private List<DialogueData> dialogueList = new List<DialogueData>();
@@ -21,10 +20,12 @@ namespace AVGTest.Asset.Script.DialogueSystem
 
         private async void Start()
         {
-            ui = FindFirstObjectByType<DialogueUIController>();
+            ui = FindFirstObjectByType<DialogueView>();
+            ui.FadeOutBlackScreen();
+            ui.FadeInCharacter();
 
             await LoadDialogueData();
-            ShowDialogue();
+            _ = ShowDialogue();
         }
 
         private void Update()
@@ -111,7 +112,7 @@ namespace AVGTest.Asset.Script.DialogueSystem
 
                 string[] fields = lines[i].Split(',');
 
-                if (fields.Length < 9)
+                if (fields.Length < 10)
                 {
                     Debug.LogWarning($"Line {i} has insufficient fields ({fields.Length}); skipped: {lines[i]}");
                     continue;
@@ -134,13 +135,14 @@ namespace AVGTest.Asset.Script.DialogueSystem
                 {
                     ID = id,
                     Command = fields[1],
-                    Arg1 = fields[2],
-                    Arg2 = fields[3],
-                    Arg3 = fields[4],
-                    BG = fields[5],
-                    CG = fields[6],
-                    Speaker = fields[7],
-                    Line = fields[8],
+                    CharacterSide = fields[2],
+                    CharacterKey = fields[3],
+                    LoadMode = fields[4],
+                    HightLight = fields[5],
+                    BG = fields[6],
+                    CG = fields[7],
+                    Name = fields[8],
+                    Dialogue = fields[9],
                 };
 
                 dialogueList.Add(data);
@@ -152,6 +154,7 @@ namespace AVGTest.Asset.Script.DialogueSystem
             if (currentDialogueIndex >= dialogueList.Count)
             {
                 OnChangeNextDialogue?.Invoke(null);
+                ui.FadeInBlackScreen();
                 return;
             }
 
@@ -178,6 +181,10 @@ namespace AVGTest.Asset.Script.DialogueSystem
 
                 case "Say":
                     OnChangeNextDialogue?.Invoke(dialogueData);
+                    Process(dialogueData);
+                    break;
+                case "CleanCharacter":
+                    ui.FadeOutCharacter();
                     break;
 
                 default:
@@ -188,20 +195,20 @@ namespace AVGTest.Asset.Script.DialogueSystem
 
         private void HandleSetCharater(DialogueData dialogue)
         {
-            if (dialogue.Arg1 == "Left")
+            if (dialogue.CharacterSide == "Left")
             {
-                _ = ui.SetLeftCharacter(dialogue.Arg2);
+                _ = ui.SetLeftCharacter(dialogue.CharacterKey);
 
-                if (dialogue.Arg3 == "NoWait")
+                if (dialogue.LoadMode == "NoWait")
                 {
                     NextDialogue();
                 }
             }
-            if (dialogue.Arg1 == "Right")
+            if (dialogue.CharacterSide == "Right")
             {
-                _ = ui.SetRightCharacter(dialogue.Arg2);
+                _ = ui.SetRightCharacter(dialogue.CharacterKey);
 
-                if (dialogue.Arg3 == "NoWait")
+                if (dialogue.LoadMode == "NoWait")
                 {
                     NextDialogue();
                 }
@@ -211,7 +218,7 @@ namespace AVGTest.Asset.Script.DialogueSystem
         public void NextDialogue()
         {
             currentDialogueIndex++;
-            ShowDialogue();
+            _ = ShowDialogue();
         }
 
         public async void OnClickForceRefresh()
@@ -219,13 +226,35 @@ namespace AVGTest.Asset.Script.DialogueSystem
             await LoadDialogueData(isForceUpdate: true);
             Debug.Log("Force update completed");
             currentDialogueIndex = 0;
-            ShowDialogue();
+            _ = ShowDialogue();
         }
 
         public void StartDialogue()
         {
             currentDialogueIndex = 0;
-            ShowDialogue();
+            _ = ShowDialogue();
+        }
+
+        public void Process(DialogueData dialogueData)
+        {
+            switch (dialogueData.HightLight)
+            {
+                case "Left":
+                    ui.HighlightLeftCharacter();
+                    ui.DeHighlightRightCharacter();
+                    break;
+                case "Right":
+                    ui.HighlightRightCharacter();
+                    ui.DeHighlightLeftCharacter();
+                    break;
+                case "None":
+                    ui.DeHighlightAllCharacter(); 
+                    break;
+                case "All":
+                default:
+                    ui.HighlightAllCharacter();
+                    break;
+            }
         }
     }
 }

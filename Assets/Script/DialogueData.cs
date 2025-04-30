@@ -3,11 +3,12 @@ public class DialogueData
 {
     public int ID;
     public string Command;
-    public string Arg1;
-    public string Arg2;
-    public string Arg3;
+    public string CharacterSide;
+    public string CharacterKey;
+    public string LoadMode;
+    public string HightLight;
     public string BG;
     public string CG;
-    public string Speaker;
-    public string Line;
+    public string Name;
+    public string Dialogue;
 }
