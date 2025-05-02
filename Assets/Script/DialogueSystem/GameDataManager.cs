@@ -75,8 +75,8 @@ public class GameDataManager
     public void RememberNewArray<T>(IGameData[] array) where T : IGameData
     {
         IGameData[] newArray = new IGameData[array.Length];
-        for (int i = 0; i < newArray.Length; i++) 
-        { 
+        for (int i = 0; i < newArray.Length; i++)
+        {
             newArray[i] = array[i];
         }
 

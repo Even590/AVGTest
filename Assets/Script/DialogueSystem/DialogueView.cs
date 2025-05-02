@@ -157,11 +157,16 @@ namespace AVGTest.Asset.Script.DialogueSystem
 
         public void FadeInBlackScreen()
         {
+            
             blackScreen.CrossFadeAlpha(1f, 2.5f, true);
         }
 
         public void FadeOutBlackScreen()
         {
+            var c = blackScreen.color;
+            c.a = 1f;
+            blackScreen.color = c;
+
             blackScreen.CrossFadeAlpha(0f, 2.5f, true);
         }
 

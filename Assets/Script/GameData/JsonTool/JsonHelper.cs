@@ -15,6 +15,7 @@ public static class JsonHelper
         return JsonUtility.ToJson(wrapper, prettyPrint);
     }
 
+    [System.Serializable]
     private class Wrapper<T>
     {
         public T[] values;

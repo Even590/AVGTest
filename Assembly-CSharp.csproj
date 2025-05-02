@@ -58,12 +58,14 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.10f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Script\GameData\DialogueDataHandler.cs" />
     <Compile Include="Assets\Script\DialogueSystem\DialogueView.cs" />
-    <Compile Include="Assets\Script\DialogueData.cs" />
-    <Compile Include="Assets\Script\GameData\JsonHelper.cs" />
-    <Compile Include="Assets\Script\IGameData.cs" />
+    <Compile Include="Assets\Script\GameData\JsonTool\JsonHelper.cs" />
+    <Compile Include="Assets\Script\GameData\DialogueData.cs" />
+    <Compile Include="Assets\Script\GameData\IGameData.cs" />
     <Compile Include="Assets\Script\DialogueSystem\GameDataManager.cs" />
-    <Compile Include="Assets\Script\IGameDataHandler.cs" />
+    <Compile Include="Assets\Script\GameData\IGameDataHandler.cs" />
+    <Compile Include="Assets\Script\GameData\DialogueDataService.cs" />
     <Compile Include="Assets\Script\DialogueSystem\DialogueProcess.cs" />
     <Compile Include="Assets\Script\DialogueSystem\DialogueManager.cs" />
   </ItemGroup>
