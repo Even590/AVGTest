@@ -7,6 +7,12 @@ using System.Net.Http;
 
 namespace AVGTest.Asset.Script.DialogueSystem
 {
+    [System.Serializable]
+    public class DialogueDataList
+    {
+        public List<DialogueData> dialogues;
+    }
+
     public class DialogueManager : MonoBehaviour
     {
         [SerializeField] private DialogueView ui;
@@ -49,12 +55,20 @@ namespace AVGTest.Asset.Script.DialogueSystem
 
         private async UniTask LoadDialogueData(bool isForceUpdate = false)
         {
+            string jsonPath = Path.Combine(Application.persistentDataPath, "dialogue.json");
             string cachePath = Path.Combine(Application.persistentDataPath, CacheFileName);
 
+            if (File.Exists(jsonPath) && !isForceUpdate) 
+            {
+                Debug.Log("Json is being found, use json file");
+                string json = await File.ReadAllTextAsync(jsonPath);
+                var wrapper = JsonUtility.FromJson<DialogueDataList>(json);
+                dialogueList = wrapper.dialogues;
+                return;
+            }
+
             string csvText = "";
-
             int cachevalidDays = 1;
-
             bool needUpdate = true;
 
             if (File.Exists(cachePath))
@@ -98,6 +112,11 @@ namespace AVGTest.Asset.Script.DialogueSystem
 
             dialogueList.Clear();
             ParseCSV(csvText);
+
+            var outWrapper = new DialogueDataList { dialogues = dialogueList };
+            string outJson = JsonUtility.ToJson(outWrapper, true);
+            await File.AppendAllTextAsync(jsonPath, outJson);
+            Debug.Log($"Exported Json to {jsonPath}");
         }
 
         private void ParseCSV(string csv)
