@@ -31,15 +31,40 @@ namespace AVGTest.Asset.Script
         {
             if (File.Exists(_jsonFilePath) && !forceUpdate)
             {
-                string json = await File.ReadAllTextAsync(_jsonFilePath);
-                return JsonHelper.FromJson<DialogueData>(json);
+                try
+                {
+                    Debug.Log("Find json file, now use json");
+                    string json = await File.ReadAllTextAsync(_jsonFilePath);
+                    var list = JsonHelper.FromJson<DialogueData>(json);
+                    if (list != null && list.Count > 0)
+                    {
+                        Debug.Log("[DialogueDataService] 成功從 JSON 快取讀取資料");
+                        return list;
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[DialogueDataService] JSON 快取為空，準備退回下載 CSV");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"[DialogueDataService] 解析 JSON 快取失敗：{ex.Message}，準備退回下載 CSV");
+                }
+
+                File.Delete(_jsonFilePath);
+                
             }
 
             string csv = await DownloadCsvHttpClient();
-            var list = ParseCSV(csv);
+            var listcsv = ParseCSV(csv);
 
-            return list;
+            string outJson = JsonHelper.ToJson(listcsv, prettyPrint: true);
+            await File.WriteAllTextAsync(_jsonFilePath, outJson);
+            Debug.Log($"File already save cache json");
+
+            return listcsv;
         }
+
 
         private List<DialogueData> ParseCSV(string csv)
         {

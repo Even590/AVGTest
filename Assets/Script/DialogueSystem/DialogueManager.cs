@@ -1,28 +1,34 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
+using Cysharp.Threading.Tasks;
 
 namespace AVGTest.Asset.Script.DialogueSystem
 {
-
     public class DialogueManager : MonoBehaviour
     {
         [SerializeField] private DialogueView ui;
         [SerializeField] private string sheetURL;
-        private List<DialogueData> dialogueList = new List<DialogueData>();
-
+        private List<DialogueData> dialogueList;
         private int currentDialogueIndex = 0;
+        private GameDataManager _dataManager;
 
         public System.Action<DialogueData> OnChangeNextDialogue;
-
-        private DialogueDataService service;
 
         private async void Start()
         {
             ui = FindFirstObjectByType<DialogueView>();
-            service = new DialogueDataService(sheetURL);
+            _dataManager = new GameDataManager();
 
-            dialogueList = await service.GetDialogueListAsync();
+            var handler = new DialogueDataHandler(sheetURL);
+            await _dataManager.AddAsync<DialogueData>(handler, isForceUpdate: false);
+
+            var array = _dataManager.Get<DialogueData>();
+            dialogueList = array.ToList();
+
+            await UniTask.Yield();
+
             ui.FadeOutBlackScreen();
             ui.FadeInCharacter();
             _ = ShowDialogue();
@@ -119,7 +125,7 @@ namespace AVGTest.Asset.Script.DialogueSystem
                     ui.DeHighlightLeftCharacter();
                     break;
                 case "None":
-                    ui.DeHighlightAllCharacter();
+                    ui.DeHighlightAllCharacter(); 
                     break;
                 case "All":
                 default:

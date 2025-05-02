@@ -1,5 +1,5 @@
 ﻿[System.Serializable]
-public class DialogueData
+public class DialogueData : IGameData
 {
     public int ID;
     public string Command;
@@ -11,4 +11,6 @@ public class DialogueData
     public string CG;
     public string Name;
     public string Dialogue;
+
+    int IGameData.ID => this.ID;
 }

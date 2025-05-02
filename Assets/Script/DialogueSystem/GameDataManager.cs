@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using System.Linq;
 
 public class GameDataManager
 {
@@ -47,6 +48,17 @@ public class GameDataManager
         }
     }
 
+    public T[] Get<T>() where T : IGameData
+    {
+        var type = typeof(T);
+        if(m_GameData.TryGetValue(type, out var arr))
+        {
+            return arr.Cast<T>().ToArray();
+        }
+
+        return Array.Empty<T>();
+    }
+
     public async UniTask AddAsync<T>(IGameDataHandler handler, bool isForceUpdate = false) where T : IGameData
     {
         if (m_GameData.ContainsKey(typeof(T)))
@@ -75,8 +87,8 @@ public class GameDataManager
     public void RememberNewArray<T>(IGameData[] array) where T : IGameData
     {
         IGameData[] newArray = new IGameData[array.Length];
-        for (int i = 0; i < newArray.Length; i++)
-        {
+        for (int i = 0; i < newArray.Length; i++) 
+        { 
             newArray[i] = array[i];
         }
 
