@@ -17,7 +17,6 @@ namespace AVGTest.Asset.Script.DialogueSystem
     {
         [SerializeField] private DialogueView ui;
         [SerializeField] private string sheetURL;
-        private string CacheFileName = "DialogueCache.csv";
         private List<DialogueData> dialogueList = new List<DialogueData>();
 
         private int currentDialogueIndex = 0;
@@ -56,7 +55,6 @@ namespace AVGTest.Asset.Script.DialogueSystem
         private async UniTask LoadDialogueData(bool isForceUpdate = false)
         {
             string jsonPath = Path.Combine(Application.persistentDataPath, "dialogue.json");
-            string cachePath = Path.Combine(Application.persistentDataPath, CacheFileName);
 
             if (File.Exists(jsonPath) && !isForceUpdate) 
             {
@@ -67,48 +65,7 @@ namespace AVGTest.Asset.Script.DialogueSystem
                 return;
             }
 
-            string csvText = "";
-            int cachevalidDays = 1;
-            bool needUpdate = true;
-
-            if (File.Exists(cachePath))
-            {
-                Debug.Log("Found local cache file, checking whether it’s expired.");
-
-                if (!isForceUpdate)
-                {
-                    System.DateTime lastWriteTime = File.GetLastWriteTime(cachePath);
-                    System.TimeSpan timeSinceLastUpdate = System.DateTime.Now - lastWriteTime;
-
-                    Debug.Log($"快取檔案路徑：{cachePath}");
-
-                    Debug.Log($"Cache file was last updated at {lastWriteTime}; it’s been {timeSinceLastUpdate} since then.");
-
-                    if (timeSinceLastUpdate.Days <= cachevalidDays)
-                    {
-                        Debug.Log("Cache file is still valid; continuing to use it!");
-                        csvText = await File.ReadAllTextAsync(cachePath);
-                        needUpdate = false;
-                    }
-                    else
-                    {
-                        Debug.Log("Cache file has expired; proceeding to download phase!");
-                    }
-                }
-                else
-                {
-                    Debug.Log("Force update requested; now entering download phase!");
-                }
-
-            }
-
-            if (needUpdate || isForceUpdate)
-            {
-                Debug.Log("Performing network download");
-                csvText = await DownloadCsvHttpClient(sheetURL);
-                await File.WriteAllTextAsync(cachePath, csvText);
-                Debug.Log($"Cache saved at {cachePath}");
-            }
+            string csvText = await DownloadCsvHttpClient(sheetURL);
 
             dialogueList.Clear();
             ParseCSV(csvText);
