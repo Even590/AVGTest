@@ -1,105 +1,78 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
-using Cysharp.Threading.Tasks;
 using System.Linq;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
 
 public class GameDataManager
 {
-    Dictionary<Type, IGameData[]> m_GameData = new Dictionary<Type, IGameData[]>();
+    private readonly Dictionary<Type, IGameData[]> _batchCache = new();
+    private readonly Dictionary<Type, Dictionary<int, IGameData>> _idCache = new();
 
-    public void Add<T>(IGameData[] gameDatas, bool isForceUpdate = false) where T : IGameData
-    {
-        if (m_GameData.ContainsKey(typeof(T)))
-        {
-            if (isForceUpdate)
-            {
-                Remove<T>();
-                RememberNewArray<T>(gameDatas);
-            }
-            else
-            {
-                Debug.LogWarning("The file already save, please makesure isForceUpdate = true");
-            }
-        }
-        else
-        {
-            RememberNewArray<T>(gameDatas);
-        }
-    }
-
-    public void Add<T>(IGameDataHandler handler, bool isForceUpdate = false) where T : IGameData
-    {
-        if (m_GameData.ContainsKey(typeof(T)))
-        {
-            if (isForceUpdate)
-            {
-                Remove<T>();
-                RememberNewArray<T>(handler.Load<T>() as IGameData[]);
-            }
-            else
-            {
-                Debug.LogWarning("The file already save, please makesure isForceUpdate = true");
-            }
-        }
-        else
-        {
-            RememberNewArray<T>(handler.Load<T>() as IGameData[]);
-        }
-    }
-
-    public T[] Get<T>() where T : IGameData
+    public void AddBatch<T>(T[] items, bool forceUpdate = false) where T : IGameData
     {
         var type = typeof(T);
-        if(m_GameData.TryGetValue(type, out var arr))
-        {
-            return arr.Cast<T>().ToArray();
-        }
+        if (_batchCache.ContainsKey(type) && !forceUpdate) return;
 
+        _batchCache[type] = items.Cast<IGameData>().ToArray();
+
+        var byId = new Dictionary<int, IGameData>();
+        foreach (var item in items)
+        {
+            if (!byId.ContainsKey(item.ID))
+                byId[item.ID] = item;
+            else
+                Debug.LogWarning($"[GameDataManager] {type.Name} 重複 ID {item.ID} 被跳過");
+        }
+        _idCache[type] = byId;
+    }
+
+    public async UniTask AddAsync<T>(IGameDataHandler handler, bool forceUpdate = false) where T : IGameData
+    {
+        var type = typeof(T);
+        if (_batchCache.ContainsKey(type) && !forceUpdate) return;
+
+        T[] items = await handler.LoadAsync<T>();
+        AddBatch(items, forceUpdate: true);
+    }
+
+    public T[] GetAll<T>() where T : IGameData
+    {
+        var type = typeof(T);
+        if (_batchCache.TryGetValue(type, out var arr))
+            return arr.Cast<T>().ToArray();
         return Array.Empty<T>();
     }
 
-    public async UniTask AddAsync<T>(IGameDataHandler handler, bool isForceUpdate = false) where T : IGameData
+    public T GetById<T>(int id) where T : IGameData
     {
-        if (m_GameData.ContainsKey(typeof(T)))
-        {
-            if (isForceUpdate)
-            {
-                Remove<T>();
-
-                T[] data = await handler.LoadAsync<T>();
-                var asIGameData = Array.ConvertAll<T, IGameData>(data, item => item);
-                RememberNewArray<T>(asIGameData);
-            }
-            else
-            {
-                Debug.LogWarning("The file already save, please makesure isForceUpdate = true");
-            }
-        }
-        else
-        {
-            T[] data = await handler.LoadAsync<T>();
-            var asIGameData = Array.ConvertAll<T, IGameData>(data, item => item);
-            RememberNewArray<T>(asIGameData);
-        }
+        var type = typeof(T);
+        if (_idCache.TryGetValue(type, out var map) && map.TryGetValue(id, out var item))
+            return (T)item;
+        return default;
     }
 
-    public void RememberNewArray<T>(IGameData[] array) where T : IGameData
+    /// <summary>
+    /// 專門用於 DialogueData：根據場景 ID 撈該場景所有行，並依 Line 排序
+    /// </summary>
+    public List<DialogueData> GetDialogueByID(int sceneID)
     {
-        IGameData[] newArray = new IGameData[array.Length];
-        for (int i = 0; i < newArray.Length; i++) 
-        { 
-            newArray[i] = array[i];
-        }
-
-        m_GameData.Add(typeof(T), newArray);
+        // 先拿出所有 DialogueData，再篩 ID、排序 Line
+        return GetAll<DialogueData>()
+            .Where(d => d.ID == sceneID)
+            .OrderBy(d => d.Line)
+            .ToList();
     }
 
-    public void Remove<T>() where T : IGameData
+    public List<T> Query<T>(Func<T, bool> predicate) where T : IGameData
     {
-        if (m_GameData.ContainsKey(typeof(T)))
-        {
-            m_GameData.Remove(typeof(T));
-        }
+        return GetAll<T>().Where(predicate).ToList();
+    }
+
+    public void Clear<T>() where T : IGameData
+    {
+        var type = typeof(T);
+        _batchCache.Remove(type);
+        _idCache.Remove(type);
     }
 }

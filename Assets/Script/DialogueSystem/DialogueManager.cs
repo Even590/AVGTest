@@ -10,6 +10,7 @@ namespace AVGTest.Asset.Script.DialogueSystem
     {
         [SerializeField] private DialogueView ui;
         [SerializeField] private string sheetURL;
+
         private List<DialogueData> dialogueList;
         private int currentDialogueIndex = 0;
         private GameDataManager _dataManager;
@@ -22,10 +23,9 @@ namespace AVGTest.Asset.Script.DialogueSystem
             _dataManager = new GameDataManager();
 
             var handler = new DialogueDataHandler(sheetURL);
-            await _dataManager.AddAsync<DialogueData>(handler, isForceUpdate: false);
+            await _dataManager.AddAsync<DialogueData>(handler, forceUpdate: false);
 
-            var array = _dataManager.Get<DialogueData>();
-            dialogueList = array.ToList();
+            dialogueList = _dataManager.GetAll<DialogueData>().ToList();
 
             await UniTask.Yield();
 

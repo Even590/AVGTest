@@ -2,6 +2,7 @@
 public class DialogueData : IGameData
 {
     public int ID;
+    public int Line;
     public string Command;
     public string CharacterSide;
     public string CharacterKey;
