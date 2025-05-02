@@ -7,11 +7,6 @@ using System.Net.Http;
 
 namespace AVGTest.Asset.Script.DialogueSystem
 {
-    [System.Serializable]
-    public class DialogueDataList
-    {
-        public List<DialogueData> dialogues;
-    }
 
     public class DialogueManager : MonoBehaviour
     {
@@ -60,8 +55,7 @@ namespace AVGTest.Asset.Script.DialogueSystem
             {
                 Debug.Log("Json is being found, use json file");
                 string json = await File.ReadAllTextAsync(jsonPath);
-                var wrapper = JsonUtility.FromJson<DialogueDataList>(json);
-                dialogueList = wrapper.dialogues;
+                dialogueList = JsonHelper.FromJson<DialogueData>(json);
                 return;
             }
 
@@ -70,9 +64,8 @@ namespace AVGTest.Asset.Script.DialogueSystem
             dialogueList.Clear();
             ParseCSV(csvText);
 
-            var outWrapper = new DialogueDataList { dialogues = dialogueList };
-            string outJson = JsonUtility.ToJson(outWrapper, true);
-            await File.AppendAllTextAsync(jsonPath, outJson);
+            string outJson = JsonHelper.ToJson(dialogueList, true);
+            await File.WriteAllTextAsync(jsonPath, outJson);
             Debug.Log($"Exported Json to {jsonPath}");
         }
 

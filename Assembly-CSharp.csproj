@@ -60,6 +60,7 @@
   <ItemGroup>
     <Compile Include="Assets\Script\DialogueSystem\DialogueView.cs" />
     <Compile Include="Assets\Script\DialogueData.cs" />
+    <Compile Include="Assets\Script\GameData\JsonHelper.cs" />
     <Compile Include="Assets\Script\IGameData.cs" />
     <Compile Include="Assets\Script\DialogueSystem\GameDataManager.cs" />
     <Compile Include="Assets\Script\IGameDataHandler.cs" />
