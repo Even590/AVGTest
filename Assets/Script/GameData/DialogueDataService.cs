@@ -74,25 +74,23 @@ namespace AVGTest.Asset.Script
             for (int i = 1; i < lines.Length; i++)
             {
                 var fields = lines[i].Split(',');
-                if (fields.Length < 11) continue;
+                if (fields.Length < 10) continue;
                 for (int j = 0; j < fields.Length; j++)
                     fields[j] = fields[j].Trim();
                 if (!int.TryParse(fields[0], out int id)) continue;
-                if (!int.TryParse(fields[1], out int line)) continue;
 
                 result.Add(new DialogueData
                 {
                     ID = id,
-                    Line = line,
-                    Command = fields[2],
-                    CharacterSide = fields[3],
-                    CharacterKey = fields[4],
-                    LoadMode = fields[5],
-                    HightLight = fields[6],
-                    BG = fields[7],
-                    CG = fields[8],
-                    Name = fields[9],
-                    Dialogue = fields[10]
+                    Command = fields[1],
+                    CharacterSide = fields[2],
+                    CharacterKey = fields[3],
+                    LoadMode = fields[4],
+                    HightLight = fields[5],
+                    BG = fields[6],
+                    CG = fields[7],
+                    Name = fields[8],
+                    Dialogue = fields[9]
                 });
             }
             return result;
