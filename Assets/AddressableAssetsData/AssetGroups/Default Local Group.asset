@@ -17,21 +17,6 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: 523393a812e7d694bac6c9a2616022db
   m_SerializeEntries:
-  - m_GUID: 478ffe990b61a874f8fe482801c7ad01
-    m_Address: Character/Kevin_Normal
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b777943d375fbb947b299f8262e9e575
-    m_Address: Character/Even_Normal
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 2fc4be774fe83054cade790536dd9829
-    m_Address: Character/Brain_Normal
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 0cddce12e26ec504ba3f54afad8acb19
     m_Address: BG/BackgroundNight
     m_ReadOnly: 0
@@ -48,17 +33,37 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 68b14ae571644bf4eb2adca0fab6c934
-    m_Address: Character/Boy
+    m_Address: Character/Ren_Nomal
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a359e80428020964496f2baa20b5271c
-    m_Address: Character/Girl
+    m_Address: Character/Satsuki_Nomal
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 95fc0598a62194047b37895d779bc6d7
-    m_Address: Character/Girl2
+    m_Address: Character/Miu_Nomal
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 00a74d1d9e17fde40951bb976b40cec1
+    m_Address: Character/Satsuki_Panic
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: da1e934dfcac566428e7c49bc0bf5226
+    m_Address: Character/Miu_Panic
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4064e0b8ddddfcf4a9b6b5a48e935d9b
+    m_Address: Character/Ren_Panic
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1c31c3b758f9d154d9a938fa86985687
+    m_Address: BG/Backgroundblack
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
