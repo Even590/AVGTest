@@ -97,6 +97,7 @@ namespace AVGTest.Asset.Script.DialogueSystem
         {
             leftCharaterImage.sprite = sprite;
             leftCharaterImage.color = Color.white;
+            leftCharaterImage.CrossFadeAlpha(1f, 0.5f, true);
 
             onCompleted?.Invoke();
         }
@@ -111,6 +112,7 @@ namespace AVGTest.Asset.Script.DialogueSystem
         {
             rightCharaterImage.sprite = sprite;
             rightCharaterImage.color = Color.white;
+            rightCharaterImage.CrossFadeAlpha(1f, 0.5f, true);
 
             onCompleted?.Invoke();
         }

@@ -63,7 +63,6 @@ namespace AVGTest.Asset.Script.DialogueSystem
                 case "SetCharacter":
                     HandleSetCharater(dialogueData);
                     break;
-
                 case "Say":
                     OnChangeNextDialogue?.Invoke(dialogueData);
                     Process(dialogueData);
@@ -71,6 +70,8 @@ namespace AVGTest.Asset.Script.DialogueSystem
                 case "CleanCharacter":
                     ui.FadeOutCharacter();
                     break;
+                case "SetOption":
+                    
 
                 default:
                     Debug.LogWarning($"UnknowCommand:{dialogueData.Command}");

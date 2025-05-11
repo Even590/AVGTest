@@ -38,6 +38,7 @@ namespace AVGTest.Asset.Script
                     var list = JsonHelper.FromJson<DialogueData>(json);
                     if (list != null && list.Count > 0)
                     {
+                        Debug.Log($"persistentDataPath = {Application.persistentDataPath}");
                         Debug.Log("[DialogueDataService] 成功從 JSON 快取讀取資料");
                         return list;
                     }
