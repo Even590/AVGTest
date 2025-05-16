@@ -22,7 +22,11 @@ namespace AVGTest.Asset.Script.DialogueSystem
             ui = FindFirstObjectByType<DialogueView>();
             _dataManager = new GameDataManager();
 
-            var handler = new DialogueDataHandler(sheetURL);
+            var handler = new DialogueDataHandler(
+            sheetURL: sheetURL,
+            addressableJsonKey: "DialogueJson"
+            );
+
             await _dataManager.AddAsync<DialogueData>(handler, forceUpdate: false);
 
             dialogueList = _dataManager.GetAll<DialogueData>().ToList();

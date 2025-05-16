@@ -6,9 +6,9 @@ using System.Linq;
 public class DialogueDataHandler : IGameDataHandler
 {
     private readonly DialogueDataService _service;
-    public DialogueDataHandler(string sheetURL)
+    public DialogueDataHandler(string sheetURL, string addressableJsonKey = null)
     {
-        _service = new DialogueDataService(sheetURL);
+        _service = new DialogueDataService(sheetURL, addressableJsonKey);
     }
     public T[] Load<T>() where T : IGameData
     {
@@ -18,7 +18,7 @@ public class DialogueDataHandler : IGameDataHandler
     {
         if(typeof(T) == typeof(DialogueData))
         {
-            var list = await _service.GetDialogueListAsync(forceUpdate : false);
+            var list = await _service.GetDialogueListAsync();
             return list.Cast<T>().ToArray();
         }
 
