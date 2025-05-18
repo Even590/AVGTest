@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+using System;
 
 namespace AVGTest.Asset.Script.DialogueSystem
 {
@@ -13,6 +14,8 @@ namespace AVGTest.Asset.Script.DialogueSystem
 
         private GameDataManager _dataManager;
         private Dictionary<int, Dictionary<int, List<DialogueData>>> _script;
+
+        public event Action onDialougeCompelete;
 
         private async void Start()
         {
@@ -40,6 +43,7 @@ namespace AVGTest.Asset.Script.DialogueSystem
         {
             if (!_script.TryGetValue(ID, out var branchDict) || !branchDict.TryGetValue(branch, out var lines))
             {
+                onDialougeCompelete?.Invoke();
                 return;
             }
 
@@ -54,6 +58,8 @@ namespace AVGTest.Asset.Script.DialogueSystem
                 if (!keepGoing)
                     return;
             }
+
+            onDialougeCompelete?.Invoke();
         }
 
         private async UniTask<bool> HandleCommandAsync(DialogueData dialogueData, int ID)

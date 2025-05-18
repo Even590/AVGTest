@@ -1,5 +1,4 @@
 ﻿using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine;
 using TMPro;
 using System;
@@ -8,7 +7,6 @@ using Cysharp.Threading.Tasks;
 using System.Threading.Tasks;
 using DG.Tweening;
 using System.Collections.Generic;
-using Cysharp.Threading.Tasks.Triggers;
 
 namespace AVGTest.Asset.Script.DialogueSystem
 {
@@ -17,26 +15,19 @@ namespace AVGTest.Asset.Script.DialogueSystem
         [Header("UI物件")]
         [Tooltip("對話介面")]
         [SerializeField] private GameObject dialogueUI;
-        [Tooltip("CG介面")]
-        [SerializeField] private GameObject CGUI;
         [Header("對話框，包含普通對話介面與CG介面")]
         [Tooltip("對話介面用名稱TEXT")]
         [SerializeField] private TextMeshProUGUI nameText;
         [Tooltip("對話介面用劇本TEXT")]
         [SerializeField] private TextMeshProUGUI dialogueText;
-        [Tooltip("CG介面用名稱TEXT")]
-        [SerializeField] private TextMeshProUGUI CGnameText;
-        [Tooltip("CG介面用劇本TEXT")]
-        [SerializeField] private TextMeshProUGUI CGdialogueText;
         [Header("左右人物物件與插畫位置")]
         [SerializeField] private Transform leftCharaterTransfrom;
         [SerializeField] private Transform rightCharaterTransfrom;
         [SerializeField] private Image leftCharaterImage;
         [SerializeField] private Image rightCharaterImage;
-        [Header("背景圖位置")]
-        [SerializeField] private Image BG;
-        [Header("CG插畫位置")]
-        [SerializeField] private Image CG;
+        [Header("BG跟CG圖片位置")]
+        [SerializeField] private Image CGImage;
+
         [Header("黑幕")]
         [SerializeField] private Image blackScreen;
 
@@ -51,6 +42,12 @@ namespace AVGTest.Asset.Script.DialogueSystem
         [SerializeField] private TextMeshProUGUI optionTextA;
         [Tooltip("選擇按鈕B的文字")]
         [SerializeField] private TextMeshProUGUI optionTextB;
+
+        [Header("主畫面")]
+        [Tooltip("主介面物件")]
+        [SerializeField] private GameObject mainMenu;
+        [SerializeField] private Button[] buttons;
+
 
         private DialogueManager dialogueManager;
 
@@ -123,8 +120,8 @@ namespace AVGTest.Asset.Script.DialogueSystem
         public async Task SetBG(string spriteName, Action onCompleted = null)
         {
             var sprite = await LoadBGSpriteAsync(spriteName);
-            BG.sprite = sprite;
-            BG.color = Color.white;
+            CGImage.sprite = sprite;
+            CGImage.color = Color.white;
             onCompleted?.Invoke();
         }
 
@@ -137,8 +134,9 @@ namespace AVGTest.Asset.Script.DialogueSystem
         public async Task SetCG(string spriteName, Action onCompleted = null)
         {
             var sprite = await LoadCGSpriteAsync(spriteName);
-            CG.sprite = sprite;
-            CG.color = Color.white;
+            FadeOutCharacter();
+            CGImage.sprite = sprite;
+            CGImage.color = Color.white;
             onCompleted?.Invoke();
         }
 
