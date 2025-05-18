@@ -17,7 +17,9 @@ namespace AVGTest.Asset.Script
         public DialogueDataService(string sheetURL, string addressableJsonKey = null)
         {
             _sheetURL = sheetURL;
-            _addressableJsonKey = addressableJsonKey;
+            _addressableJsonKey = string.IsNullOrWhiteSpace(addressableJsonKey)
+                ? null
+                : addressableJsonKey;
         }
 
         public async UniTask<List<DialogueData>> GetDialogueListAsync()
@@ -26,22 +28,21 @@ namespace AVGTest.Asset.Script
             {
                 try
                 {
-                    var handle = Addressables.LoadAssetAsync<TextAsset>(_addressableJsonKey);
-                    await handle.Task; 
+                    var locHandle = Addressables.LoadResourceLocationsAsync(_addressableJsonKey);
+                    await locHandle.Task;
 
-                    if (handle.Status == AsyncOperationStatus.Succeeded && handle.Result != null)
+                    if (locHandle.Status == AsyncOperationStatus.Succeeded && locHandle.Result.Count > 0)
                     {
-                        Debug.Log($"[DialogueDataService] Form Addressables reading JSON：{_addressableJsonKey}");
-                        var json = handle.Result.text;
-                        Addressables.Release(handle);
-                        var list = JsonHelper.FromJson<DialogueData>(json);
-                        if (list != null && list.Count > 0)
-                            return list;
+                        var handle = Addressables.LoadAssetAsync<TextAsset>(_addressableJsonKey);
+                        await handle.Task;
+                        if(handle.Status == AsyncOperationStatus.Succeeded && handle.Result != null)
+                        {
+                            var list = JsonHelper.FromJson<DialogueData>(handle.Result.text);
+                            if (list != null && list.Count > 0)
+                                return list;
+                        }
                     }
-                    else
-                    {
-                        Debug.LogWarning($"[DialogueDataService] Addressables key Can't Find：{_addressableJsonKey}");
-                    }
+                    Addressables.Release(locHandle);
                 }
                 catch (Exception ex)
                 {
@@ -67,24 +68,46 @@ namespace AVGTest.Asset.Script
             var lines = csv.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             for (int i = 1; i < lines.Length; i++)
             {
-                var fields = lines[i].Split(',');
-                if (fields.Length < 10) continue;
-                // trim & parse...
-                if (!int.TryParse(fields[0], out int id)) continue;
-                result.Add(new DialogueData
+                var f = lines[i].Split(',');
+                if (f.Length < 11) continue;
+
+                if (!int.TryParse(f[0].Trim(), out int id)) continue;
+                if (!int.TryParse(f[1].Trim(), out int branch)) continue;
+
+                var data = new DialogueData
                 {
                     ID = id,
-                    Command = fields[1].Trim(),
-                    CharacterSide = fields[2].Trim(),
-                    CharacterKey = fields[3].Trim(),
-                    LoadMode = fields[4].Trim(),
-                    HightLight = fields[5].Trim(),
-                    BG = fields[6].Trim(),
-                    CG = fields[7].Trim(),
-                    Name = fields[8].Trim(),
-                    Dialogue = fields[9].Trim()
-                });
+                    Branch = branch,
+                    Command = f[2].Trim(),
+                    CharacterSide = f[3].Trim(),
+                    CharacterKey = f[4].Trim(),
+                    LoadMode = f[5].Trim(),
+                    HightLight = f[6].Trim(),
+                    BG = f[7].Trim(),
+                    CG = f[8].Trim(),
+                    Name = f[9].Trim(),
+                    Dialogue = f[10].Trim(),
+                    dialogueBranches = null
+                };
+
+                if (data.Command == "SetOption" && f.Length >= 15)
+                {
+                    data.dialogueBranches = new List<DialogueBranch>
+                    {
+                        new DialogueBranch {
+                            Text         = f[11].Trim(),
+                            TargetBranch = int.Parse(f[12].Trim())
+                        },
+                    new DialogueBranch {
+                            Text         = f[13].Trim(),
+                            TargetBranch = int.Parse(f[14].Trim())
+                        },
+                    };
+                }
+
+                result.Add(data);
             }
+
             return result;
         }
     }

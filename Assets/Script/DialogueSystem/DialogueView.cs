@@ -7,6 +7,8 @@ using UnityEngine.UI;
 using Cysharp.Threading.Tasks;
 using System.Threading.Tasks;
 using DG.Tweening;
+using System.Collections.Generic;
+using Cysharp.Threading.Tasks.Triggers;
 
 namespace AVGTest.Asset.Script.DialogueSystem
 {
@@ -38,83 +40,78 @@ namespace AVGTest.Asset.Script.DialogueSystem
         [Header("黑幕")]
         [SerializeField] private Image blackScreen;
 
+        [Header("選項面板")]
+        [Tooltip("選項介面")]
+        [SerializeField] private GameObject optionPanel;
+        [Tooltip("選擇按鈕A")]
+        [SerializeField] private Button optionButtonA;
+        [Tooltip("選擇按鈕B")]
+        [SerializeField] private Button optionButtonB;
+        [Tooltip("選擇按鈕A的文字")]
+        [SerializeField] private TextMeshProUGUI optionTextA;
+        [Tooltip("選擇按鈕B的文字")]
+        [SerializeField] private TextMeshProUGUI optionTextB;
+
         private DialogueManager dialogueManager;
 
-        void Start()
+        public void UpdateDialogue(string name, string dialogue)
         {
-            dialogueManager = FindAnyObjectByType<DialogueManager>();
+            optionPanel.SetActive(false);
+            nameText.text = name;
+            dialogueText.text = dialogue;
+        }
 
-            if (dialogueManager == null)
+        public UniTask WaitForInput()
+        {
+            return UniTask.WaitUntil(() => Input.GetKeyDown(KeyCode.Space) ||Input.GetMouseButtonDown(0));
+        }
+
+        public UniTask<int> ShowOption(List<DialogueBranch> branches)
+        {
+            var tcs = new UniTaskCompletionSource<int>();
+
+            optionPanel.SetActive(true);
+            optionTextA.text = branches[0].Text;
+            optionTextB.text = branches[1].Text;
+
+            void OnA()
             {
-                Debug.LogError("Can't find DialogueManager！");
-                return;
+                CleanUp();
+                tcs.TrySetResult(0);
             }
 
-            dialogueManager.OnChangeNextDialogue += UpdateDialogue;
-
-            dialogueManager.StartDialogue();
-
-            CGUI.SetActive(false);
-        }
-
-        void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
+            void OnB()
             {
-                dialogueManager.NextDialogue();
-            }
-        }
-
-        private void UpdateDialogue(DialogueData data)
-        {
-            if (data == null)
-            {
-                Debug.Log("Dialogue is finish");
-                nameText.text = "";
-                dialogueText.text = "";
-                return;
+                CleanUp();
+                tcs.TrySetResult(1);
             }
 
-            nameText.text = data.Name;
-            dialogueText.text = data.Dialogue;
+            void CleanUp()
+            {
+                optionButtonA.onClick.RemoveListener(OnA);
+                optionButtonB.onClick.RemoveListener(OnB);
+                optionPanel.SetActive(false);
+            }
+
+            optionButtonA.onClick.AddListener(OnA);
+            optionButtonB.onClick.AddListener(OnB);
+            return tcs.Task;
         }
 
-        public async UniTask<Sprite> LoadCharacterSpriteAsync(string spriteName)
+        public async Task SetLeftCharacter(string spriteName)
         {
-            AsyncOperationHandle<Sprite> handle = Addressables.LoadAssetAsync<Sprite>($"Character/{spriteName}");
-            Sprite sprite = await handle.Task;
-
-            return sprite;
-        }
-
-        public async Task SetLeftCharacter(string spriteName, Action onCompleted = null)
-        {
-            Sprite sprite = await LoadCharacterSpriteAsync(spriteName);
-            SetLeftCharacter(sprite, onCompleted);
-        }
-
-        public void SetLeftCharacter(Sprite sprite, Action onCompleted = null)
-        {
+            var handle = Addressables.LoadAssetAsync<Sprite>($"Character/{spriteName}");
+            var sprite = await handle.Task;
             leftCharaterImage.sprite = sprite;
-            leftCharaterImage.color = Color.white;
             leftCharaterImage.CrossFadeAlpha(1f, 0.5f, true);
-
-            onCompleted?.Invoke();
         }
 
-        public async Task SetRightCharacter(string spriteName, Action onCompleted = null)
+        public async Task SetRightCharacter(string spriteName)
         {
-            Sprite sprite = await LoadCharacterSpriteAsync(spriteName);
-            SetRightCharacter(sprite, onCompleted);
-        }
-
-        public void SetRightCharacter(Sprite sprite, Action onCompleted = null)
-        {
+            var handle = Addressables.LoadAssetAsync<Sprite>($"Character/{spriteName}");
+            var sprite = await handle.Task;
             rightCharaterImage.sprite = sprite;
-            rightCharaterImage.color = Color.white;
             rightCharaterImage.CrossFadeAlpha(1f, 0.5f, true);
-
-            onCompleted?.Invoke();
         }
 
         public async UniTask<Sprite> LoadBGSpriteAsync(string spriteName)

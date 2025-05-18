@@ -11,115 +11,88 @@ namespace AVGTest.Asset.Script.DialogueSystem
         [SerializeField] private DialogueView ui;
         [SerializeField] private string sheetURL;
 
-        private List<DialogueData> dialogueList;
-        private int currentDialogueIndex = 0;
         private GameDataManager _dataManager;
-
-        public System.Action<DialogueData> OnChangeNextDialogue;
+        private Dictionary<int, Dictionary<int, List<DialogueData>>> _script;
 
         private async void Start()
         {
             ui = FindFirstObjectByType<DialogueView>();
             _dataManager = new GameDataManager();
 
-            var handler = new DialogueDataHandler(
-            sheetURL: sheetURL,
-            addressableJsonKey: "DialogueJson"
-            );
-
+            var handler = new DialogueDataHandler(sheetURL, addressableJsonKey: "");
             await _dataManager.AddAsync<DialogueData>(handler, forceUpdate: false);
 
-            dialogueList = _dataManager.GetAll<DialogueData>().ToList();
+            var all = _dataManager.GetAll<DialogueData>().ToList();
 
-            await UniTask.Yield();
+            _script = all
+                .GroupBy(d => d.ID)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.GroupBy(d => d.Branch)
+                          .ToDictionary(bg => bg.Key, bg => bg.ToList())
+                    );
 
             ui.FadeOutBlackScreen();
-            ui.FadeInCharacter();
-            _ = ShowDialogue();
+            await PlayBranch(ID: 1, branch: 0);
         }
 
-        private async Task ShowDialogue()
+        private async UniTask PlayBranch(int ID, int branch)
         {
-            if (currentDialogueIndex >= dialogueList.Count)
+            if (!_script.TryGetValue(ID, out var branchDict) || !branchDict.TryGetValue(branch, out var lines))
             {
-                OnChangeNextDialogue?.Invoke(null);
-                ui.FadeInBlackScreen();
                 return;
             }
 
-            var dlg = dialogueList[currentDialogueIndex];
-            OnChangeNextDialogue?.Invoke(dlg);
+            foreach (var data in lines)
+            {
+                ui.UpdateDialogue(data.Name, data.Dialogue);
 
-            if (!string.IsNullOrEmpty(dlg.Command))
-                ExecuteCommand(dlg);
+                if (!string.IsNullOrEmpty(data.BG)) await ui.SetBG(data.BG);
+                if (!string.IsNullOrEmpty(data.CG)) await ui.SetCG(data.CG);
 
-            if (!string.IsNullOrEmpty(dlg.BG))
-                await ui.SetBG(dlg.BG);
-
-            if (!string.IsNullOrEmpty(dlg.CG))
-                await ui.SetBG(dlg.CG);
+                bool keepGoing = await HandleCommandAsync(data, ID);
+                if (!keepGoing)
+                    return;
+            }
         }
 
-        private void ExecuteCommand(DialogueData dialogueData)
+        private async UniTask<bool> HandleCommandAsync(DialogueData dialogueData, int ID)
         {
             switch (dialogueData.Command)
             {
                 case "SetCharacter":
-                    HandleSetCharater(dialogueData);
-                    break;
+                    if (dialogueData.CharacterSide == "Left")
+                        await ui.SetLeftCharacter(dialogueData.CharacterKey);
+                    else
+                        await ui.SetRightCharacter(dialogueData.CharacterKey);
+
+                    if (dialogueData.LoadMode == "NoWait")
+                        return true;
+                    goto case "Say";
+
                 case "Say":
-                    OnChangeNextDialogue?.Invoke(dialogueData);
-                    Process(dialogueData);
-                    break;
+                    HighlightCharacters(dialogueData.HightLight);
+                    await ui.WaitForInput();
+                    return true;
+
                 case "CleanCharacter":
                     ui.FadeOutCharacter();
-                    break;
+                    return true;
+
                 case "SetOption":
-                    
+                    int choice = await ui.ShowOption(dialogueData.dialogueBranches);
+                    await PlayBranch(ID, choice + 1);
+                    return false;
 
                 default:
-                    Debug.LogWarning($"UnknowCommand:{dialogueData.Command}");
-                    break;
+                    Debug.LogWarning($"Unknown Command: {dialogueData.Command}");
+                    return true;
             }
         }
 
-        private void HandleSetCharater(DialogueData dialogue)
+        public void HighlightCharacters(string mode)
         {
-            if (dialogue.CharacterSide == "Left")
-            {
-                _ = ui.SetLeftCharacter(dialogue.CharacterKey);
-
-                if (dialogue.LoadMode == "NoWait")
-                {
-                    NextDialogue();
-                }
-            }
-            if (dialogue.CharacterSide == "Right")
-            {
-                _ = ui.SetRightCharacter(dialogue.CharacterKey);
-
-                if (dialogue.LoadMode == "NoWait")
-                {
-                    NextDialogue();
-                }
-            }
-        }
-
-        public void NextDialogue()
-        {
-            currentDialogueIndex++;
-            _ = ShowDialogue();
-        }
-
-        public void StartDialogue()
-        {
-            currentDialogueIndex = 0;
-            _ = ShowDialogue();
-        }
-
-        public void Process(DialogueData dialogueData)
-        {
-            switch (dialogueData.HightLight)
+            switch (mode)
             {
                 case "Left":
                     ui.HighlightLeftCharacter();
