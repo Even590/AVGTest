@@ -96,7 +96,7 @@ namespace AVGTest.Asset.Script.DialogueSystem
             }
         }
 
-        public void HighlightCharacters(string mode)
+        private void HighlightCharacters(string mode)
         {
             switch (mode)
             {

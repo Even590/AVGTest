@@ -59,6 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Script\GameData\DialogueDataHandler.cs" />
+    <Compile Include="Assets\Script\DialogueTest\DialogueScriptTest.cs" />
     <Compile Include="Assets\Script\DialogueSystem\DialogueView.cs" />
     <Compile Include="Assets\Script\GameData\JsonTool\JsonHelper.cs" />
     <Compile Include="Assets\Script\GameData\DialogueData.cs" />
