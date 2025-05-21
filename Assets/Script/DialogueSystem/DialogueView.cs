@@ -117,7 +117,7 @@ namespace AVGTest.Asset.Script.DialogueSystem
             return await handle.Task;
         }
 
-        public async Task SetBG(string spriteName, Action onCompleted = null)
+        public async UniTask SetBG(string spriteName, Action onCompleted = null)
         {
             var sprite = await LoadBGSpriteAsync(spriteName);
             CGImage.sprite = sprite;
@@ -131,7 +131,7 @@ namespace AVGTest.Asset.Script.DialogueSystem
             return await handle.Task;
         }
 
-        public async Task SetCG(string spriteName, Action onCompleted = null)
+        public async UniTask SetCG(string spriteName, Action onCompleted = null)
         {
             var sprite = await LoadCGSpriteAsync(spriteName);
             FadeOutCharacter();

@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using System;
+using System.Threading;
+using System.Data;
 
 namespace AVGTest.Asset.Script.DialogueSystem
 {
@@ -12,8 +14,12 @@ namespace AVGTest.Asset.Script.DialogueSystem
         [SerializeField] private DialogueView ui;
         [SerializeField] private string sheetURL;
 
+        private CancellationTokenSource _playCts;
+
         private GameDataManager _dataManager;
         private Dictionary<int, Dictionary<int, List<DialogueData>>> _script;
+
+        public bool pauseForInput { get; set; } = false;
 
         public event Action onDialougeCompelete;
 
@@ -36,11 +42,21 @@ namespace AVGTest.Asset.Script.DialogueSystem
                     );
 
             ui.FadeOutBlackScreen();
-            await PlayBranch(ID: 1, branch: 0);
+            await PlayBranch(ID: 1, branch: 0).SuppressCancellationThrow();
         }
 
         private async UniTask PlayBranch(int ID, int branch)
         {
+            _playCts?.Cancel();
+            _playCts = new CancellationTokenSource();
+            var token = _playCts.Token;
+
+            if (_script == null)
+            {
+                Debug.LogError("DialogueManager: _script not initailiz!");
+                return;
+            }
+
             if (!_script.TryGetValue(ID, out var branchDict) || !branchDict.TryGetValue(branch, out var lines))
             {
                 onDialougeCompelete?.Invoke();
@@ -49,12 +65,17 @@ namespace AVGTest.Asset.Script.DialogueSystem
 
             foreach (var data in lines)
             {
+                token.ThrowIfCancellationRequested();
+
                 ui.UpdateDialogue(data.Name, data.Dialogue);
 
-                if (!string.IsNullOrEmpty(data.BG)) await ui.SetBG(data.BG);
-                if (!string.IsNullOrEmpty(data.CG)) await ui.SetCG(data.CG);
+                if (!string.IsNullOrEmpty(data.BG)) 
+                    await ui.SetBG(data.BG).AttachExternalCancellation(token);
 
-                bool keepGoing = await HandleCommandAsync(data, ID);
+                if (!string.IsNullOrEmpty(data.CG)) 
+                    await ui.SetCG(data.CG).AttachExternalCancellation(token);
+
+                bool keepGoing = await HandleCommandAsync(data, ID).AttachExternalCancellation(token);
                 if (!keepGoing)
                     return;
             }
@@ -94,6 +115,11 @@ namespace AVGTest.Asset.Script.DialogueSystem
                     Debug.LogWarning($"Unknown Command: {dialogueData.Command}");
                     return true;
             }
+        }
+
+        public void CancelCurrent()
+        {
+            _playCts?.Cancel();
         }
 
         private void HighlightCharacters(string mode)

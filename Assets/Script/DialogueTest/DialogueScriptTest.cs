@@ -13,6 +13,7 @@ namespace AVGTest.Asset.Script
     {
         [Header("測試UI")]
         [Tooltip("輸入章節或章節分支(如1或2.1)")]
+        [SerializeField] private GameObject TesterView;
         [SerializeField] private TMP_InputField command_Input;
         [SerializeField] private Button         runButton;
 
@@ -48,32 +49,43 @@ namespace AVGTest.Asset.Script
         private void Start()
         {
             runButton.onClick.AddListener(() => RunCommand().Forget());
+            TesterView.SetActive(false);
+        }
+
+        private void Update()
+        {
+            if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.Equals))
+            {
+                bool now = !TesterView.activeSelf;
+                TesterView.SetActive(now);
+
+                _manager.pauseForInput = now;
+            }
         }
 
         private async UniTask RunCommand()
         {
+            _manager.CancelCurrent();
+
             var text = command_Input.text.Trim();
             if (string.IsNullOrEmpty(text)) return;
 
-            // 解析 "章節" 或 "章節.分支"
             var parts = text.Split('.');
             if (!int.TryParse(parts[0], out int chapter))
             {
-                Debug.LogWarning($"無效的章節格式：{parts[0]}");
+                Debug.LogWarning($"Invalid chapter format：{parts[0]}");
                 return;
             }
             int branch = 0;
             if (parts.Length > 1 && !int.TryParse(parts[1], out branch))
             {
-                Debug.LogWarning($"無效的分支格式：{parts[1]}");
+                Debug.LogWarning($"Invalid branch format：{parts[1]}");
                 return;
             }
 
             try
             {
-                // 透過反射呼叫 PlayBranch
                 var result = _playBranchMethod.Invoke(_manager, new object[] { chapter, branch });
-                // PlayBranch 回傳 UniTask，所以這裡 cast 並 await
                 if (result is UniTask ut)
                 {
                     await ut;
@@ -84,13 +96,12 @@ namespace AVGTest.Asset.Script
                 }
                 else
                 {
-                    // 如果方法簽名變動，不會回傳我們預期的類型
-                    Debug.LogWarning("PlayBranch 回傳值非 UniTask/Task，無法等待。");
+                    Debug.LogWarning("PlayBranch returned a non-UniTask/Task value and cannot be awaited.");
                 }
             }
             catch (Exception ex)
             {
-                Debug.LogError($"執行 PlayBranch 失敗：{ex.Message}");
+                Debug.LogWarning($"Failed to execute PlayBranch：{ex.Message}");
             }
         }
     }
